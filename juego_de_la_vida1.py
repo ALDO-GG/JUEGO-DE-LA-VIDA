@@ -1,114 +1,97 @@
 import pygame
 
-pygame.init()
+ventana = pygame.display.set_mode((600,600))
+ejecutar = True
 
-ventana_x = 800
-ventana_y = 800
-ventana = pygame.display.set_mode((ventana_x,ventana_y))
-
-estado_actual = []
-
-lista_auxiliar = []
-
-ejecucion = True
-cantidad_celdas = 40
+estato_actual = []
+longitud_celdas = 20
 pausa = False
+cantidad_celdas = 30
 
-longitud_celda = 20
+for y in range(30):
+	ar = []
+	for x in range(30):
+		ar.append([0])
+	estato_actual.append(ar)
 
-for y in range(cantidad_celdas):
-	for x in range(cantidad_celdas):
+def dibujar():
 
-		lista_auxiliar.append(0)
-	estado_actual.append(lista_auxiliar)
-	
-	lista_auxiliar = []
+	for y in range(len(estato_actual)):
+		for x in range(len(estato_actual[y])):
 
-tiempo = pygame.time.Clock()
-while ejecucion:
+			if estato_actual[y][x] == 1:
+				pygame.draw.rect(ventana,(255,255,255),[x*longitud_celdas,y*longitud_celdas,longitud_celdas,longitud_celdas])
+			else:
+				pygame.draw.rect(ventana,(255,255,255),[x*longitud_celdas,y*longitud_celdas,longitud_celdas,longitud_celdas],1)
 
-	ventana.fill((0,0,0))
+def selecionar():
 
-	tiempo.tick(60)
-
-	if not pausa:
-	
-		suma = 0
-
-		estado_futuro = []
-
-		for y in range(len(estado_actual)):
-			
-			celda = ()
-			for x in range(len(estado_actual[y])):
-
-				celda = (estado_actual[(y+1) % cantidad_celdas][x % cantidad_celdas],
-				estado_actual[(y+1) % cantidad_celdas][(x+1) % cantidad_celdas],
-				estado_actual[(y+1) % cantidad_celdas][(x-1) % cantidad_celdas],
-				estado_actual[y % cantidad_celdas][(x+1) % cantidad_celdas],
-				estado_actual[y % cantidad_celdas][(x-1) % cantidad_celdas],
-				estado_actual[(y-1) % cantidad_celdas][(x+1) % cantidad_celdas],
-				estado_actual[(y-1) % cantidad_celdas][(x-1) % cantidad_celdas],
-				estado_actual[(y-1) % cantidad_celdas][x % cantidad_celdas])
-
-				suma = sum(celda)
-				
-				if estado_actual[y][x]:
-
-					if suma == 2 or suma == 3:
-
-						lista_auxiliar.append(1)
-					else:
-						lista_auxiliar.append(0)
-				else:
-					if suma == 3:
-
-						lista_auxiliar.append(1)
-					else:
-						lista_auxiliar.append(0)
-
-				celda = ()
-			estado_futuro.append(lista_auxiliar)
-			lista_auxiliar = []
-
-		estado_actual = estado_futuro
-
-		lista_auxiliar = []
-
-	raton = pygame.mouse.get_pos()
+	raton_posicion = pygame.mouse.get_pos()
 	raton_teclas = pygame.mouse.get_pressed()
 
 	if raton_teclas[0]:
 
-		celdaraton_x = raton[0] // longitud_celda
-		celdaraton_y = raton[1] // longitud_celda
+		x = raton_posicion[0] // longitud_celdas
+		y = raton_posicion[1] // longitud_celdas
 
-		estado_actual[celdaraton_y][celdaraton_x] = 1
+		estato_actual[y][x] = 1
 
-	elif raton_teclas[2]:
+	if raton_teclas[2]:
 
-		celdaraton_x = raton[0] // longitud_celda
-		celdaraton_y = raton[1] // longitud_celda
+		x = raton_posicion[0] // longitud_celdas
+		y = raton_posicion[1] // longitud_celdas
 
-		estado_actual[celdaraton_y][celdaraton_x] = 0 
+		estato_actual[y][x] = 0
 
-	for y in range(len(estado_actual)):
+def reglas():
+	global estato_actual
 
-			for x in range(len(estado_actual[y])):
+	estado_futuro = []
+	for y in range(30):
+		ar = []
+		for x in range(30):
+			ar.append([0])
+		estado_futuro.append(ar)
 
-				color = (255,255,255)
+	for y in range(len(estato_actual)):
+		for x in range(len(estato_actual[y])):
+			celda = (estato_actual[y%cantidad_celdas][(x+1)%cantidad_celdas],
+					estato_actual[y%cantidad_celdas][(x-1)%cantidad_celdas],
+					estato_actual[(y+1)%cantidad_celdas][x%cantidad_celdas],
+					estato_actual[(y+1)%cantidad_celdas][(x+1)%cantidad_celdas],
+					estato_actual[(y+1)%cantidad_celdas][(x-1)%cantidad_celdas],
+					estato_actual[(y-1)%cantidad_celdas][x%cantidad_celdas],
+					estato_actual[(y-1)%cantidad_celdas][(x-1)%cantidad_celdas],
+					estato_actual[(y-1)%cantidad_celdas][(x+1)%cantidad_celdas])
+			celda = celda.count(1)
 
-				if estado_actual[y][x]:
-					pygame.draw.rect(ventana,color,[x*longitud_celda,y*longitud_celda,longitud_celda,longitud_celda])
-				else:       
-					pygame.draw.rect(ventana,color,[x*longitud_celda,y*longitud_celda,longitud_celda,longitud_celda],1)
-		
+			if estato_actual[y][x] == 1:
+				if celda > 1 and celda < 4:
+					estado_futuro[y][x] = 1
+				else: 
+					estado_futuro[y][x] = 0
+			else:
+				if celda == 3:
+					estado_futuro[y][x] = 1
+	estato_actual = estado_futuro
+
+tiempo = pygame.time.Clock()
+while ejecutar:
+
+	tiempo.tick(30)
+	
+	ventana.fill((0,0,0))
+	selecionar()
+	dibujar()
+	if not pausa:
+		reglas()
+
 	for i in pygame.event.get():
-
 		if i.type == pygame.QUIT:
-			ejecucion = False
-
+			ejecutar = False
 		if i.type == pygame.KEYDOWN:
+			if i.key == pygame.K_ESCAPE:
+				ejecutar = False
 			if i.key == pygame.K_p:
 				pausa = not pausa
 
